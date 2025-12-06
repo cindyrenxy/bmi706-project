@@ -27,6 +27,116 @@ def load_data():
 df = load_data()
 
 # -------- SECTION 1 — Demographic Distribution --------
+st.header("Demographic Distribution by Ethnicity")
+
+ethnicity_options = sorted(df["ethnicity"].dropna().unique())
+selected_ethnicity = st.selectbox("Select Ethnicity", ethnicity_options)
+
+demo_df = (
+    df[df["ethnicity"] == selected_ethnicity][
+        ["ethnicity", "hospital_death", "age", "gender"]
+    ]
+    .dropna()
+    .copy()
+)
+
+outcome_map = {0: "Alive", 1: "Deceased"}
+demo_df["Outcome"] = demo_df["hospital_death"].astype(int).map(outcome_map)
+
+outcome_bar = (
+    alt.Chart(demo_df)
+    .mark_bar()
+    .encode(
+        x=alt.X("Outcome:N", title="Hospital Outcome"),
+        y=alt.Y("count()", title="Number of ICU Admissions"),
+        color=alt.Color(
+            "Outcome:N",
+            scale=alt.Scale(
+            domain=["Alive", "Deceased"],
+            range=["#3A5F8A", "#E76F51"],
+            #range=["#4C9AFF", "#FF6F61"],  
+        ),
+            legend=alt.Legend(title="Outcome"),
+        ),
+        tooltip=[
+            alt.Tooltip("Outcome:N", title="Outcome"),
+            alt.Tooltip("count():Q", title="Count"),
+        ],
+    )
+    .properties(title=f"Outcome for {selected_ethnicity}")
+)
+
+st.altair_chart(outcome_bar, use_container_width=True)
+
+# --- BOTTOM LEFT: Age Pie with Custom Age Groups ---
+demo_df["age_group"] = pd.cut(
+    demo_df["age"],
+    bins=[0, 20, 40, 60, 80, 200],
+    labels=["0–20", "20–40", "40–60", "60–80", "80+"],
+    right=False,
+)
+
+age_pie = (
+    alt.Chart(demo_df)
+    .transform_aggregate(count="count()", groupby=["age_group"])
+    .mark_arc(innerRadius=50, outerRadius=120)
+    .encode(
+        theta=alt.Theta("count:Q"),
+        color=alt.Color(
+            "age_group:N",
+            title="Age Group",
+            scale=alt.Scale(
+            range=[
+            "#F3ECE7", 
+            "#E6D3C1",  
+            "#D9A679",  
+            "#C97A5E",  
+            "#8C3A2B", 
+        ]
+)
+        ),
+        tooltip=[
+            alt.Tooltip("age_group:N", title="Age Group"),
+            alt.Tooltip("count:Q", title="Count"),
+        ],
+    )
+    .properties(title="Age Distribution")
+)
+
+
+gender_pie = (
+    alt.Chart(demo_df)
+    .transform_aggregate(count="count()", groupby=["gender"])
+    .mark_arc(innerRadius=50, outerRadius=120)
+    .encode(
+        theta=alt.Theta("count:Q"),
+        color=alt.Color(
+            "gender:N",
+            title="Gender",
+            scale=alt.Scale(
+                domain=["F", "M"],
+                range=["#D9CBB6", "#7A9BBE"],  
+            ),
+        ),
+        tooltip=[
+            alt.Tooltip("gender:N", title="Gender"),
+            alt.Tooltip("count:Q", title="Count"),
+        ],
+    )
+    .properties(title="Gender Distribution")
+)
+
+
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.altair_chart(age_pie, use_container_width=True)
+
+with col2:
+    st.altair_chart(gender_pie, use_container_width=True)
+
+
 
 # -------- SECTION 2 — Numeric Predictor Distribution by Outcome --------
 
