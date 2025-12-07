@@ -2,6 +2,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 import numpy as np
+from scipy.stats import ttest_ind, mannwhitneyu
 
 st.set_page_config(page_title="ICU EDA Dashboard", layout="wide")
 st.title("ICU EDA Dashboard")
@@ -30,7 +31,7 @@ df = load_data()
 st.header("Demographic Distribution by Ethnicity")
 
 ethnicity_options = sorted(df["ethnicity"].dropna().unique())
-selected_ethnicity = st.selectbox("Select Ethnicity", ethnicity_options)
+selected_ethnicity = st.selectbox("Choose ethnicity", ethnicity_options)
 
 demo_df = (
     df[df["ethnicity"] == selected_ethnicity][
@@ -203,3 +204,92 @@ chart = (
 st.altair_chart(chart, use_container_width=True)
 
 # -------- SECTION 3 — Lab Result Change in Time --------
+lab_operations = {
+    # ---- Chemistry / Metabolic Panels ----
+    "Serum Albumin": "albumin_max",
+    "Total Bilirubin": "bilirubin_max",
+    "Blood Urea Nitrogen (BUN)": "bun_max",
+    "Total Serum Calcium": "calcium_max",
+    "Serum Creatinine": "creatinine_max",
+    "Blood Glucose": "glucose_max",
+    "Bicarbonate (HCO₃)": "hco3_max",
+    
+    # ---- Hematology ----
+    "Hemoglobin Concentration": "hemaglobin_max",
+    "Hematocrit Percentage": "hematocrit_max",
+    "International Normalized Ratio (INR)": "inr_max",
+    "Blood Lactate Level": "lactate_max",
+    "Platelet Count": "platelets_max",
+    "Serum Potassium": "potassium_max",
+    "Serum Sodium": "sodium_max",
+    "White Blood Cell Count (WBC)": "wbc_max",
+
+    # ---- Respiratory / Gas Exchange ----
+    "Arterial Partial Pressure of Carbon Dioxide (PaCO₂)": "arterial_pco2_max",
+    "Arterial Blood pH": "arterial_ph_max",
+    "Arterial Partial Pressure of Oxygen (PaO₂)": "arterial_po2_max",
+    "Oxygenation Ratio (PaO₂ / FiO₂)": "pao2fio2ratio_max",
+
+    # ---- Vital Signs ----
+    "Heart Rate (Beats per Minute)": "heartrate_max",
+    "Respiratory Rate (Breaths per Minute)": "resprate_max",
+    "Peripheral Oxygen Saturation (SpO₂)": "spo2_max",
+    "Body Temperature": "temp_max",
+    "Mean Arterial Pressure (MAP)": "mbp_max",
+    "Diastolic Blood Pressure": "diasbp_max",
+    "Systolic Blood Pressure": "sysbp_max",
+}
+
+
+st.header("Change of Selected ICU Labs Operations (D1 − H1)")
+
+# selection box for lab feature
+lab_sel = st.selectbox("Choose a lab operation", list(lab_operations.keys()))
+lab_key = lab_operations[lab_sel]
+
+# extract the H1 and D1 columns for selected lab operation
+h1_col = f"h1_{lab_key}"
+d1_col = f"d1_{lab_key}"
+lab_df = df[[h1_col, d1_col, "hospital_death", "patient_id"]].copy()
+lab_df["Outcome"] = lab_df["hospital_death"].map({0: "Alive", 1: "Deceased"})
+lab_df["delta"] = lab_df[d1_col] - lab_df[h1_col] # calculate delta
+
+# statistical tests
+alive = lab_df[lab_df["Outcome"]=="Alive"]["delta"].dropna()
+dead  = lab_df[lab_df["Outcome"]=="Deceased"]["delta"].dropna()
+t,p_welch = ttest_ind(alive, dead, equal_var=False)
+u,p_mw = mannwhitneyu(alive, dead, alternative='two-sided')
+st.subheader(f"Δ Distribution for **{lab_sel}**")
+st.write(f"**Welch t-test** p = {p_welch:.2e}")
+st.write(f"**Mann-Whitney** p = {p_mw:.2e}")
+
+# box + swarm plot
+box = (
+    alt.Chart(lab_df)
+    .mark_boxplot(size=50, median={'color':'white'})
+    .encode(
+        x=alt.X("Outcome:N", axis=alt.Axis(labelAngle=0)),
+        y=alt.Y("delta:Q", title=f"Δ {lab_sel} (D1−H1)"),
+        color=alt.Color(
+            "Outcome:N",
+            scale=alt.Scale(domain=["Alive","Deceased"], range=["#3A5F8A", "#E76F51"])
+        )
+    )
+)
+
+swarm = (
+    alt.Chart(lab_df)
+    .mark_circle(size=40, opacity=0.55)
+    .encode(
+        x="Outcome:N",
+        y="delta:Q",
+        color=alt.Color(
+            "Outcome:N",
+            scale=alt.Scale(domain=["Alive","Deceased"], range=["#3A5F8A", "#E76F51"])
+        ),
+        tooltip=["patient_id","delta"]
+    )
+)
+
+lab_plot = (box + swarm).properties(width=350, height=350)
+st.altair_chart(lab_plot, use_container_width=True)
