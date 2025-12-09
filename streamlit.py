@@ -145,7 +145,6 @@ with col2:
 predictor_options = {
     "Age": "age",
     "Body Mass Index (BMI)": "bmi",
-    "Pre-ICU Length of Stay (days)": "pre_icu_los_days",
 
     "Day 1 Mean Blood Pressure (Max)": "d1_mbp_max",
     "Day 1 Temperature (Max)": "d1_temp_max",
