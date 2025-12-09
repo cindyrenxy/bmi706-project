@@ -145,19 +145,34 @@ with col2:
 predictor_options = {
     "Age": "age",
     "Body Mass Index (BMI)": "bmi",
-    "Day 1 Mean Blood Pressure (max)": "d1_mbp_max",
-    "Day 1 Temperature (max)": "d1_temp_max",
+    "Pre-ICU Length of Stay (days)": "pre_icu_los_days",
+
+    "Day 1 Mean Blood Pressure (Max)": "d1_mbp_max",
+    "Day 1 Temperature (Max)": "d1_temp_max",
+    "Day 1 Heart Rate (Max)": "heart_rate_apache",
+
     "APACHE IV Hospital Death Probability": "apache_4a_hospital_death_prob",
     "APACHE IV ICU Death Probability": "apache_4a_icu_death_prob",
-    "Pre-ICU Length of Stay (days)": "pre_icu_los_days",
+
     "APACHE Creatinine": "creatinine_apache",
-    "APACHE BUN": "bun_apache",
-    "APACHE FiO₂": "fio2_apache",
+    "APACHE Blood Urea Nitrogen (BUN)": "bun_apache",
     "APACHE Glucose": "glucose_apache",
-    "APACHE Heart Rate": "heart_rate_apache",
+    "APACHE Fraction of Inspired Oxygen (FiO₂)": "fio2_apache",
+
+    "Day 1 White Blood Cell Count (Max)": "d1_wbc_max",
+    "Day 1 Hematocrit (Min)": "d1_hct_min",
+
+    "Day 1 Sodium (Max)": "d1_sodium_max",
+    "Day 1 Potassium (Max)": "d1_potassium_max",
+
+    "Day 1 Platelet Count (Min)": "d1_platelets_min",
+
+    "Day 1 Lactate (Max)": "d1_lactate_max",
+
+    "Day 1 Creatinine (Max)": "d1_creatinine_max"
 }
 
-st.header("Numeric Predictor Distribution by Outcome")
+st.header("ICU Risk Factor Distributions by Survival Outcome")
 
 predictor_label = st.selectbox("Choose predictor", list(predictor_options.keys()))
 predictor = predictor_options[predictor_label]
