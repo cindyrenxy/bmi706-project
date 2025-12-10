@@ -1,7 +1,9 @@
 # Interactive ICU EDA Dashboard
 
 ## 📊 Overview
-This project presents an **interactive exploratory data analysis dashboard** built using the **WiDS Datathon 2020 ICU dataset**. Our goal is to visualize early clinical signals associated with **in-hospital mortality** and provide interpretable insights to support critical-care research and decision-making.
+This project showcases an **interactive exploratory data analysis dashboard** built with the **WiDS Datathon 2020 ICU dataset**. The dashboard enables visualization of early clinical indicators associated with **in-hospital mortality**, helping users identify risk patterns and derive interpretable insights for critical care research and decision support.
+
+🔗 **Live Dashboard:** https://bmi706-project-jaghxpysq9qdfvmwslbanr.streamlit.app/
 
 ---
 
